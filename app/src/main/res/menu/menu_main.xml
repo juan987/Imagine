@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.juan.imagine.MainActivity">
     <item
+        android:id="@+id/generar_video"
+        android:orderInCategory="100"
+        android:title="@string/generar_video"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_create_configuracion"
@@ -12,6 +17,8 @@
         android:orderInCategory="100"
         android:title="@string/action_borrar_configuracion"
         app:showAsAction="never" />
+
+
     <item
         android:id="@+id/finalizar_app"
         android:orderInCategory="100"

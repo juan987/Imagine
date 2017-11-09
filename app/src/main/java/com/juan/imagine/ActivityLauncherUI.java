@@ -603,6 +603,12 @@ public class ActivityLauncherUI extends AppCompatActivity  {
             return true;
         }
 
+        if (id == R.id.generar_video) {
+            Intent intent = new Intent(ActivityLauncherUI.this, ActivityVideo.class);
+            startActivity(intent);
+            return true;
+        }
+
         if (id == R.id.finalizar_app) {
             //**************************************************************
             // finalizar la aplicacion
@@ -610,7 +616,6 @@ public class ActivityLauncherUI extends AppCompatActivity  {
             //**************************************************************
             return true;
         }
-
 
 
         return super.onOptionsItemSelected(item);

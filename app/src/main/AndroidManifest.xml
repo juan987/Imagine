@@ -23,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.juan.imagine.ActivityLauncher"
+            android:name=".ActivityLauncher"
             android:configChanges="orientation"
             android:label="@string/title_activity_mezclar"
             android:screenOrientation="portrait"
@@ -35,30 +35,34 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.juan.imagine.ActivityLauncherUI"
+            android:name=".ActivityLauncherUI"
             android:configChanges="orientation"
             android:label="@string/title_activity_mezclar"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name="com.juan.imagine.MezclarFinal"
+            android:name=".MezclarFinal"
             android:configChanges="orientation"
             android:label="@string/title_activity_mezclar"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <service
-            android:name="com.juan.imagine.IntentServiceMagic"
+            android:name=".IntentServiceMagic"
             android:exported="false" />
 
         <activity
-            android:name="com.juan.imagine.BorrarConfiguracionActivity"
+            android:name=".BorrarConfiguracionActivity"
             android:label="@string/title_activity_borrar_configuracion"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name="com.juan.imagine.ActivityValidacion"
+            android:name=".ActivityValidacion"
             android:label="@string/title_activity_validacion"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ActivityVideo"
+            android:label="@string/title_activity_video"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
