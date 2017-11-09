@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.juan.imagine.BorrarConfiguracionActivity"
+    tools:showIn="@layout/activity_borrar_configuracion">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Active configuration:"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.182"
+        app:layout_constraintHorizontal_bias="0.075"
+        android:visibility="visible"
+        android:textSize="20sp"
+        />
+
+    <!--
+            app:layout_constraintHorizontal_bias="0.062"
+
+    -->
+
+    <TextView
+        android:id="@+id/text_view_active_directory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Muestra el directorio actual"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.268"
+        app:layout_constraintHorizontal_bias="0.32"
+        android:visibility="visible"
+        android:textSize="29sp"
+        />
+
+    <!--
+    <TextView
+        android:id="@+id/text_view_active_directory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Muestra el directorio actual"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.271"
+        android:visibility="visible"
+        app:layout_constraintHorizontal_bias="0.075"
+        android:textSize="25sp"
+        />
+        -->
+
+
+    <Button
+        android:id="@+id/button_id"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Delete active configuration"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.28"
+        app:layout_constraintVertical_bias="0.774"
+        android:textSize="25sp"
+        android:textAllCaps="false"
+        />
+
+
+
+</android.support.constraint.ConstraintLayout>

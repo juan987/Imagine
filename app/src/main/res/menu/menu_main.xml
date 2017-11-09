@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.juan.imagine.MainActivity">
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_create_configuracion"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/actio_borrar_configuracion"
+        android:orderInCategory="100"
+        android:title="@string/action_borrar_configuracion"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/finalizar_app"
+        android:orderInCategory="100"
+        android:title="@string/finalizar"
+        app:showAsAction="never" />
+</menu>
