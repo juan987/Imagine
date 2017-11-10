@@ -33,7 +33,9 @@ public class ActivityLauncher extends AppCompatActivity {
         ConfiguracionLicencia configuracionLicencia = new ConfiguracionLicencia(this);
         String dato = configuracionLicencia.getLicencia();
 
-        if(dato == null){
+        boolean boolean1 = false;
+        //if(dato == null){
+        if(boolean1){
             Log.d(xxx, "En metodo onCreate hay un null, No hay licencia");
 
             //No hay licencia
@@ -296,7 +298,10 @@ public class ActivityLauncher extends AppCompatActivity {
             } else {//Salta aqui si no hay datos en el intent
                 Log.d(xxx, "En metodo recuperarIntentConDatosInicialesServicio, Datos de Launch Mezclar: No hay datos");
                 Log.d(xxx, "En metodo recuperarIntentConDatosInicialesServicio, Click en el icono, lanzar ");
-                Intent intent = new Intent(this, ActivityLauncherUI.class);
+
+                //Ahora lanzo solo Activity video
+                //Intent intent = new Intent(this, ActivityLauncherUI.class);
+                Intent intent = new Intent(this, ActivityVideo.class);
 
                 //launchMezclarApplication.putExtra("KeyName","Hola, te estoy llamando");
 
@@ -309,7 +314,12 @@ public class ActivityLauncher extends AppCompatActivity {
             //Si la app no ha sido abierta desde otra app, Launh Mezclar en mi caso, la cierro automaticamente
             //agregue el finish el 25 oct 2017
             //this.finish();
-            Intent intent = new Intent(this, ActivityLauncherUI.class);
+
+            //Ahora lanzo solo Activity video
+
+            //Intent intent = new Intent(this, ActivityLauncherUI.class);
+            Intent intent = new Intent(this, ActivityVideo.class);
+
 
             startActivity(intent);
 

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Imagine</string>
+    <string name="app_name">Videos v1</string>
     <string name="action_create_configuracion">Create new configuration</string>
     <string name="action_borrar_configuracion">Delete active configuration</string>
     <string name="finalizar">End program</string>

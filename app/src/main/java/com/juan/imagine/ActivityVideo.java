@@ -1,9 +1,11 @@
 package com.juan.imagine;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
@@ -12,6 +14,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import org.bytedeco.javacpp.avcodec;
 import org.bytedeco.javacpp.opencv_core;
@@ -34,6 +40,9 @@ import static org.bytedeco.javacpp.opencv_imgcodecs.cvLoadImage;
 public class ActivityVideo extends AppCompatActivity {
     String xxx = this.getClass().getSimpleName();
     Bitmap imagenSuperponerBitMap;
+    ProgressBar progressBar;
+    EditText numDeImagenes;
+    int intNumeroImagenes;
 
 
     @Override
@@ -49,11 +58,34 @@ public class ActivityVideo extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Generating video", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                //crearVideo();
-                metodoPrincipal();
+             //crearVideo();
 
             }
         });
+
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
+        numDeImagenes   = (EditText)findViewById(R.id.numImagenes);
+
+
+        Button button = (Button) findViewById(R.id.button_id_1);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if ((numDeImagenes.length() == 0)) {
+                    Snackbar.make(findViewById(R.id.coord), "Enter number of images", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                } else {
+
+                    intNumeroImagenes = Integer.parseInt(numDeImagenes.getText().toString());
+                    Log.d(xxx, "onCreate, intNumeroImagenes: " +intNumeroImagenes);
+
+                    progressBar.setVisibility(View.VISIBLE);
+                    //Lanzamos el asynctask de componer imagen
+                    new ComponerVideoAsyncTask().execute("string1", "string2", "string3");
+                }
+            }
+        });
+
+
 
     }
 
@@ -195,7 +227,15 @@ public class ActivityVideo extends AppCompatActivity {
 
     //******************************************************************************************************
     //******************************************************************************************************
+
+    long tiempoGeneracionVideo = 0;
+    long tiempoConcatenacionVideo = 0;
+
+
+
     //Todos los metodos para generar la imagen
+    String vidPathConcatenado;
+    String vidPath;
     private void metodoPrincipal(){
         //Crear los datos necesarios de la matriz, solo hay una matriz
         MatrizDeDatos matrizDeDatos = new MatrizDeDatos();
@@ -210,7 +250,7 @@ public class ActivityVideo extends AppCompatActivity {
         //Path y nombre del video a generar, lo hacemos con la hora
         Date date = new Date();
         SimpleDateFormat sdf2 = new SimpleDateFormat("dd_MM_HHmmss");
-        String vidPath = Environment.getExternalStorageDirectory() + "/HacerCosas/" +sdf2.format(date) +".mp4";
+         vidPath = Environment.getExternalStorageDirectory() + "/HacerCosas/" +sdf2.format(date) +".mp4";
         Log.d(xxx, "metodoPrincipal el noimbre del video es: " +vidPath);
         //recuperar y hacer tyransparente la imagen pequeña
         String pathSmallImage = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"datos.bmp";
@@ -225,18 +265,21 @@ public class ActivityVideo extends AppCompatActivity {
         //Calculo tiempo de ejecucion
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;
+        tiempoGeneracionVideo = elapsedTime;
         Log.d(xxx, "metodoPrincipal, tiempo de ejecucion crearVideoPrototipo: " +elapsedTime);
         //Path y nombre del video 1 para el merge
         String vidPath_1 = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"prueba.mp4";
         //Path y nombre del video concatenado
         date = new Date();
-        String vidPathConcatenado = Environment.getExternalStorageDirectory() + "/HacerCosas/"
+        vidPathConcatenado = Environment.getExternalStorageDirectory() + "/HacerCosas/"
                             +"VideoConcatenado_" +sdf2.format(date) +".mp4";
+
         //Pasamos los path y strings vidPath_1, que se concatena con vidPath y el resultado es vidPathConcatenado
          startTime = System.currentTimeMillis();
         merge( vidPath_1,  vidPath,  vidPathConcatenado);
          stopTime = System.currentTimeMillis();
          elapsedTime = stopTime - startTime;
+         tiempoConcatenacionVideo = elapsedTime;
         Log.d(xxx, "metodoPrincipal, tiempo de ejecucion merge: " +elapsedTime);
     }//Fin de metooo principal
 
@@ -323,7 +366,9 @@ public class ActivityVideo extends AppCompatActivity {
             //Asi sera en la version final
             //for (int i=0;i<links.size();i++)
             //Ahora ponemos un nemero fijo
-            for (int i=0; i < 100;i++)
+            //for (int i=0; i < 100;i++)
+            //Ponemos el numero de imagenes del edittext
+            for (int i=0; i < intNumeroImagenes;i++)
             {
                 //TODO: en cada ciclo del loop,
                 //hay que:
@@ -444,4 +489,53 @@ public class ActivityVideo extends AppCompatActivity {
             return false;
         }
     }
+
+    //Asynctask para componer la imagen
+    private class ComponerVideoAsyncTask extends AsyncTask<String, Integer, Boolean> {
+        public ComponerVideoAsyncTask() {
+            super();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+            Log.d(xxx, "estoy en doInBackground de ComponerVideoAsyncTask");
+
+            metodoPrincipal();
+
+            return true;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        protected void onPostExecute(Boolean boolResultado) {
+            progressBar.setVisibility(View.INVISIBLE);
+
+            Log.d(xxx, "onPostExecute de ComponerVideoAsyncTask, el resultado de doInBackground es: " +boolResultado);
+            TextView tiempoGeneracionVideoText = (TextView)findViewById(R.id.textview_2);
+            tiempoGeneracionVideoText.setText(Long.toString(tiempoGeneracionVideo));
+
+            TextView tiempoConcatenacionVideoText = (TextView)findViewById(R.id.textview_4);
+            tiempoConcatenacionVideoText.setText(Long.toString(tiempoConcatenacionVideo));
+
+            TextView textviewNuevoVideo = (TextView)findViewById(R.id.textview_5);
+            textviewNuevoVideo.setText(vidPath);
+
+            TextView textviewNuevoVideo6 = (TextView)findViewById(R.id.textview_6);
+            textviewNuevoVideo6.setText(vidPathConcatenado);
+
+
+
+
+
+        }
+
+        protected void onProgressUpdate(Integer[] values) {
+        }
+
+        protected void onCancelled() {
+        }
+    }//FIN de la clase ComponerImagenAsyncTask
 }
