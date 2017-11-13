@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import org.bytedeco.javacpp.avcodec;
 import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacv.AndroidFrameConverter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
@@ -245,6 +246,16 @@ public class ActivityVideo extends AppCompatActivity {
         arrayMatrizDeDatos.add(matrizDeDatos);
         //Crear el array de links, solo hay una imagen
         String imagenGrande = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"lotto2_00493.jpg";
+        //Obtener el tamaño de la primera imagen grande para pasarlo a crearVideoPrototipo
+        Bitmap bitmap1 = getBitmapFromStore(imagenGrande);
+        int imageWidth = bitmap1.getWidth();
+        int imageHeight = bitmap1.getHeight();
+        Log.d(xxx, "metodoPrincipal ancho imagenes imageWidth: " +imageWidth);
+        Log.d(xxx, "metodoPrincipal alto imagenes imageHeight: " +imageHeight);
+
+        bitmap1.recycle();
+        //FIN Obtener el tamaño de la primera imagen grande
+
         ArrayList<String> arrayImagenesGrandesLinks = new ArrayList<>();
         arrayImagenesGrandesLinks.add(imagenGrande);
         //Path y nombre del video a generar, lo hacemos con la hora
@@ -252,7 +263,7 @@ public class ActivityVideo extends AppCompatActivity {
         SimpleDateFormat sdf2 = new SimpleDateFormat("dd_MM_HHmmss");
          vidPath = Environment.getExternalStorageDirectory() + "/HacerCosas/" +sdf2.format(date) +".mp4";
         Log.d(xxx, "metodoPrincipal el noimbre del video es: " +vidPath);
-        //recuperar y hacer tyransparente la imagen pequeña
+        //recuperar y hacer transparente la imagen pequeña
         String pathSmallImage = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"datos.bmp";
         Bitmap bitmapSmallImageTransparente = getBitmapFromStore(pathSmallImage);
         bitmapSmallImageTransparente = changeSomePixelsToTransparent(bitmapSmallImageTransparente);
@@ -260,7 +271,7 @@ public class ActivityVideo extends AppCompatActivity {
         long startTime = System.currentTimeMillis();
         //Generar el video
         crearVideoPrototipo(arrayImagenesGrandesLinks, vidPath,
-                          bitmapSmallImageTransparente, arrayMatrizDeDatos);
+                          bitmapSmallImageTransparente, arrayMatrizDeDatos, imageWidth, imageHeight);
         Log.d(xxx, "metodoPrincipal, video generado");
         //Calculo tiempo de ejecucion
         long stopTime = System.currentTimeMillis();
@@ -340,6 +351,8 @@ public class ActivityVideo extends AppCompatActivity {
         return bitmap2;
     }
 
+
+
     //10 nov 2017, metodo de juan para crear un video
     //Notas: en este metodo prototipo,
     //links solo contiene el path de la imagen grande: solo hay una que se usa en el loop, es el elemento 0
@@ -349,12 +362,14 @@ public class ActivityVideo extends AppCompatActivity {
     //public static void crearVideoPrototipo(ArrayList<String> links, String vidPath,
     public void crearVideoPrototipo(ArrayList<String> links, String vidPath,
                                                 Bitmap bitmapSmallImageTransparente,
-                                                ArrayList<MatrizDeDatos> matrizDeDatos)
+                                                ArrayList<MatrizDeDatos> matrizDeDatos,
+                                                int imageWidth, int imageHeight)
     {
         OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
         //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,640,720);
-        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,1080,1920);
-        //path de la imagen:
+        //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,1080,1920);
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,imageWidth,imageHeight);
+        //path de la imagen compuesta para cada frame:
         String imagenParaElVideo = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"imagenVideo.jpg";
         try {
             recorder.setFrameRate(28);
@@ -368,17 +383,34 @@ public class ActivityVideo extends AppCompatActivity {
             //Ahora ponemos un nemero fijo
             //for (int i=0; i < 100;i++)
             //Ponemos el numero de imagenes del edittext
+            Bitmap imagenFinalBitmap;
+            Bitmap bitmap = null;//Bitmap para la imagen grande
+            //Prueba con AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
+            AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
             for (int i=0; i < intNumeroImagenes;i++)
             {
                 //TODO: en cada ciclo del loop,
                 //hay que:
                 //hacer zoom, rotar o difuminar la imagen transparente
                 //Posicionar la imagen pequeña sobre la grande
-                Bitmap imagenFinalBitmap = overlapImages(matrizDeDatos.get(0), bitmapSmallImageTransparente, links.get(0));
-                //Guardar la imagen final
-                guardarImagenMethod(imagenParaElVideo, imagenFinalBitmap);
+                //imagenFinalBitmap = overlapImages(matrizDeDatos.get(0), bitmapSmallImageTransparente, links.get(0));
+                //Le paso un solo objeto bitmap para la imagen grande
+                imagenFinalBitmap = overlapImages2(matrizDeDatos.get(0), bitmapSmallImageTransparente, links.get(0), bitmap);
 
-                recorder.record(grabberConverter.convert(cvLoadImage(imagenParaElVideo)));
+
+                //Guardar la imagen final
+                //guardarImagenMethod(imagenParaElVideo, imagenFinalBitmap);
+
+
+                //Prueba con AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
+                recorder.record(converterToBitmap.convert(imagenFinalBitmap));
+                //Prueba con AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
+
+
+                //Original con el convertidor de ipl a frame
+                //recorder.record(grabberConverter.convert(cvLoadImage(imagenParaElVideo)));
+                Log.d(xxx, "crearVideoPrototipo, Imagen grabada: "  +i);
+
             }
             recorder.stop();
         }
@@ -388,12 +420,22 @@ public class ActivityVideo extends AppCompatActivity {
         }
     }
 
+    private Bitmap overlapImages2(MatrizDeDatos matrizDeDatos, Bitmap bitmapSmallImageTransparente, String pathImagenGrande,
+                                                Bitmap bitmap){
+        //recuperamos la imagen grande como bitmap
+        bitmap  = getBitmapFromStore(pathImagenGrande);
+        //Construimos el bitmap final que sera un frame del video
+        bitmap = createSingleImageFromMultipleImagesWithCoord(bitmap, bitmapSmallImageTransparente,
+                                    matrizDeDatos.getCoordenadaX(), matrizDeDatos.getCoordenadaY());
+        return bitmap;
+    }
+
     private Bitmap overlapImages(MatrizDeDatos matrizDeDatos, Bitmap bitmapSmallImageTransparente, String pathImagenGrande){
         //recuperamos la imagen grande como bitmap
         Bitmap bitmap  = getBitmapFromStore(pathImagenGrande);
         //Construimos el bitmap final que sera un frame del video
         bitmap = createSingleImageFromMultipleImagesWithCoord(bitmap, bitmapSmallImageTransparente,
-                                    matrizDeDatos.getCoordenadaX(), matrizDeDatos.getCoordenadaY());
+                matrizDeDatos.getCoordenadaX(), matrizDeDatos.getCoordenadaY());
         return bitmap;
     }
 
@@ -442,7 +484,7 @@ public class ActivityVideo extends AppCompatActivity {
         if(isExternalStorageWritable()) {
             if(saveImageToExternalPublicStorage(path, bitmap)){
 
-                Log.d(xxx, "guardarImagenMethod, Imagen guardada: " +path);
+                Log.d(xxx, "guardarImagenMethod, Imagen guardada: "  +path);
             }else{
 
                 Log.d(xxx, "guardarImagenMethod, ERROR: Imagen NO guardada" );
