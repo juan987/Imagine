@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.bytedeco.javacpp.opencv_imgcodecs.cvLoadImage;
 
@@ -238,6 +239,18 @@ public class ActivityVideo extends AppCompatActivity {
     String vidPathConcatenado;
     String vidPath;
     private void metodoPrincipal(){
+        //Recuperar el fichero con la matriz
+        //Obtener todas las lineas del fichero CONFIG.txt en el dir del dispositivo: pathCesaralMagicImageC
+        LeerFicheroTxt leerFicheroTxt = new LeerFicheroTxt(ActivityVideo.this);
+        //arrayLineasTexto contiene todas las lineas de CONFIG.txt
+        List<String> arrayLineasTexto = leerFicheroTxt.getFileContentsLineByLineMethod("/HacerCosas/"  +"MatrizConfig.txt");
+        //Imprimimos MatrizConfig
+        for(int i = 0; i < arrayLineasTexto.size(); i++){
+            Log.d(xxx, "metodoPrincipal arrayLineasTexto: " +arrayLineasTexto.get(i));
+        }
+
+
+
         //Crear los datos necesarios de la matriz, solo hay una matriz
         MatrizDeDatos matrizDeDatos = new MatrizDeDatos();
         matrizDeDatos.setCoordenadaX(300f);
@@ -385,21 +398,32 @@ public class ActivityVideo extends AppCompatActivity {
             //Ponemos el numero de imagenes del edittext
             Bitmap imagenFinalBitmap;
             Bitmap bitmap = null;//Bitmap para la imagen grande
+            Bitmap bitmapSmallImageEscalada = null;//Bitmap para bitmapSmallImageTransparente escalada
             //Prueba con AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
             AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
+            ModificarImagenes modificarImagenes = new ModificarImagenes(ActivityVideo.this);
             for (int i=0; i < intNumeroImagenes;i++)
             {
                 //TODO: en cada ciclo del loop,
                 //hay que:
                 //hacer zoom, rotar o difuminar la imagen transparente
+                //escalar la imagen transparente
+                bitmapSmallImageEscalada = modificarImagenes.escalarImagen(bitmapSmallImageTransparente, 1.0f);
+                //Rotar la imagen
+                bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, 30.0f);
+
+
                 //Posicionar la imagen pequeña sobre la grande
-                //imagenFinalBitmap = overlapImages(matrizDeDatos.get(0), bitmapSmallImageTransparente, links.get(0));
                 //Le paso un solo objeto bitmap para la imagen grande
-                imagenFinalBitmap = overlapImages2(matrizDeDatos.get(0), bitmapSmallImageTransparente, links.get(0), bitmap);
+                //imagenFinalBitmap = overlapImages2(matrizDeDatos.get(0), bitmapSmallImageTransparente, links.get(0), bitmap);
+                imagenFinalBitmap = overlapImages2(matrizDeDatos.get(0), bitmapSmallImageEscalada, links.get(0), bitmap);
 
-
+                //Asi lo hacia originalmente, tardaba mucho, por que guardaba y volvia a recuperar
+                //la imagen de la memoria externa
                 //Guardar la imagen final
                 //guardarImagenMethod(imagenParaElVideo, imagenFinalBitmap);
+                //Original con el convertidor de ipl a frame
+                //recorder.record(grabberConverter.convert(cvLoadImage(imagenParaElVideo)));
 
 
                 //Prueba con AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
@@ -407,8 +431,11 @@ public class ActivityVideo extends AppCompatActivity {
                 //Prueba con AndroidFrameConverter converterToBitmap = new AndroidFrameConverter();
 
 
-                //Original con el convertidor de ipl a frame
-                //recorder.record(grabberConverter.convert(cvLoadImage(imagenParaElVideo)));
+                //prueba con recycle
+                bitmapSmallImageEscalada.recycle();
+                imagenFinalBitmap.recycle();
+
+
                 Log.d(xxx, "crearVideoPrototipo, Imagen grabada: "  +i);
 
             }
@@ -430,14 +457,7 @@ public class ActivityVideo extends AppCompatActivity {
         return bitmap;
     }
 
-    private Bitmap overlapImages(MatrizDeDatos matrizDeDatos, Bitmap bitmapSmallImageTransparente, String pathImagenGrande){
-        //recuperamos la imagen grande como bitmap
-        Bitmap bitmap  = getBitmapFromStore(pathImagenGrande);
-        //Construimos el bitmap final que sera un frame del video
-        bitmap = createSingleImageFromMultipleImagesWithCoord(bitmap, bitmapSmallImageTransparente,
-                matrizDeDatos.getCoordenadaX(), matrizDeDatos.getCoordenadaY());
-        return bitmap;
-    }
+
 
     //Metodo final para la mezcla
     private Bitmap createSingleImageFromMultipleImagesWithCoord(Bitmap firstImage, Bitmap secondImage, float x, float y ){
