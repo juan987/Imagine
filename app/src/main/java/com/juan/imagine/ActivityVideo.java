@@ -19,7 +19,9 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.avcodec;
+import org.bytedeco.javacpp.avutil;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacv.AndroidFrameConverter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -399,6 +401,7 @@ public class ActivityVideo extends AppCompatActivity {
         OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
         //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,640,720);
         //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,1080,1920);
+        //Loader.load(avutil.class);
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,imageWidth,imageHeight);
         //path de la imagen compuesta para cada frame:
         String imagenParaElVideo = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"imagenVideo.jpg";
@@ -436,10 +439,41 @@ public class ActivityVideo extends AppCompatActivity {
                 bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, matrizDeDatos.get(0).getRotacion());
 
 
+                //Blur de bitmap
+                if(matrizDeDatos.get(0).getGradoDeDifuminado() > 0 && matrizDeDatos.get(0).getGradoDeDifuminado() <=25) {
+                    Log.d(xxx, "crearVideoPrototipo, Hacemos difuminado ");
+                    bitmapSmallImageEscalada = ModificarImagenes.blur2(ActivityVideo.this,
+                            bitmapSmallImageEscalada, matrizDeDatos.get(0).getGradoDeDifuminado());
+                }else{
+                    //Si no, no hacemos difuminado
+                    Log.d(xxx, "crearVideoPrototipo, NO hacemos difuminado ");
+
+                }
+
+                //Bitmap bitmapBlur = ModificarImagenes.blur2(ActivityVideo.this, bitmapSmallImageEscalada);
+                /*
+                if(bitmapBlur != null){
+                    Log.d(xxx, "crearVideoPrototipo, bitmapBlur NO es null ");
+                    Log.d(xxx, "crearVideoPrototipo, bitmapBlur NO es null " +bitmapBlur.getHeight());
+                    Log.d(xxx, "crearVideoPrototipo, bitmapBlur NO es null " +bitmapBlur.getWidth());
+                    Log.d(xxx, "crearVideoPrototipo, bitmapBlur NO es null " +bitmapBlur.getByteCount());
+
+                }else{
+                    Log.d(xxx, "crearVideoPrototipo, bitmapBlur es null ");
+
+                }
+                */
+
+
                 //Posicionar la imagen pequeña sobre la grande
                 //Le paso un solo objeto bitmap para la imagen grande
                 //imagenFinalBitmap = overlapImages2(matrizDeDatos.get(0), bitmapSmallImageTransparente, links.get(0), bitmap);
                 imagenFinalBitmap = overlapImages2(matrizDeDatos.get(0), bitmapSmallImageEscalada, links.get(0), bitmap);
+                //imagenFinalBitmap = overlapImages2(matrizDeDatos.get(0), bitmapBlur, links.get(0), bitmap);
+
+
+
+
 
                 //Asi lo hacia originalmente, tardaba mucho, por que guardaba y volvia a recuperar
                 //la imagen de la memoria externa
@@ -457,6 +491,7 @@ public class ActivityVideo extends AppCompatActivity {
                 //prueba con recycle
                 bitmapSmallImageEscalada.recycle();
                 imagenFinalBitmap.recycle();
+                //bitmapBlur.recycle();
 
                 Log.d(xxx, "crearVideoPrototipo, Imagen grabada: "  +i);
 
