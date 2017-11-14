@@ -23,8 +23,16 @@ public class MatrizDeDatos {
     float coordenadaX = 0;
     float coordenadaY = 0;
     float rotacion = 0.0f;
-    int gradoDeDifuminado = 0;
+    float zoom = 0.0f;
+    float gradoDeDifuminado = 0;
 
+    public float getZoom() {
+        return zoom;
+    }
+
+    public void setZoom(float zoom) {
+        this.zoom = zoom;
+    }
 
     public float getCoordenadaX() {
         return coordenadaX;
@@ -50,12 +58,22 @@ public class MatrizDeDatos {
         this.rotacion = rotacion;
     }
 
-    public int getGradoDeDifuminado() {
+    public float getGradoDeDifuminado() {
         return gradoDeDifuminado;
     }
 
-    public void setGradoDeDifuminado(int gradoDeDifuminado) {
+    public void setGradoDeDifuminado(float gradoDeDifuminado) {
         this.gradoDeDifuminado = gradoDeDifuminado;
     }
 
+    @Override
+    public String toString() {
+        return "MatrizDeDatos{" +
+                "coordenadaX=" + coordenadaX +
+                ", coordenadaY=" + coordenadaY +
+                ", rotacion=" + rotacion +
+                ", zoom=" + zoom +
+                ", gradoDeDifuminado=" + gradoDeDifuminado +
+                '}';
+    }
 }

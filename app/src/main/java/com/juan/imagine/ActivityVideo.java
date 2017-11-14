@@ -239,6 +239,7 @@ public class ActivityVideo extends AppCompatActivity {
     String vidPathConcatenado;
     String vidPath;
     private void metodoPrincipal(){
+
         //Recuperar el fichero con la matriz
         //Obtener todas las lineas del fichero CONFIG.txt en el dir del dispositivo: pathCesaralMagicImageC
         LeerFicheroTxt leerFicheroTxt = new LeerFicheroTxt(ActivityVideo.this);
@@ -248,15 +249,32 @@ public class ActivityVideo extends AppCompatActivity {
         for(int i = 0; i < arrayLineasTexto.size(); i++){
             Log.d(xxx, "metodoPrincipal arrayLineasTexto: " +arrayLineasTexto.get(i));
         }
+        MatrizTxt matrizTxt = new MatrizTxt(ActivityVideo.this);
+        ArrayList<MatrizDeDatos> arrayMatrizDeDatos = matrizTxt.obtenerDatosMatriz(arrayLineasTexto);
+        //Imprimir arrayMatrizDeDatos2 a ver que tiene
+        if(arrayMatrizDeDatos != null) {
+            for (int i = 0; i < arrayMatrizDeDatos.size(); i++) {
+                Log.d(xxx, "metodoPrincipal, arrayMatrizDeDatos2 : " + arrayMatrizDeDatos.get(i).toString());
+            }
+        }
 
 
 
+        //14 nov 2017: codigo original para crear una matriz de datos solo con x e y
+        //No la uso mas
         //Crear los datos necesarios de la matriz, solo hay una matriz
+        /*
         MatrizDeDatos matrizDeDatos = new MatrizDeDatos();
         matrizDeDatos.setCoordenadaX(300f);
         matrizDeDatos.setCoordenadaY(1300f);
         ArrayList<MatrizDeDatos> arrayMatrizDeDatos = new ArrayList<>();
         arrayMatrizDeDatos.add(matrizDeDatos);
+        */
+        //FIN 14 nov 2017: codigo original para crear una matriz de datos solo con x e y
+
+
+
+
         //Crear el array de links, solo hay una imagen
         String imagenGrande = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"lotto2_00493.jpg";
         //Obtener el tamaño de la primera imagen grande para pasarlo a crearVideoPrototipo
@@ -407,10 +425,15 @@ public class ActivityVideo extends AppCompatActivity {
                 //TODO: en cada ciclo del loop,
                 //hay que:
                 //hacer zoom, rotar o difuminar la imagen transparente
+
                 //escalar la imagen transparente
-                bitmapSmallImageEscalada = modificarImagenes.escalarImagen(bitmapSmallImageTransparente, 1.0f);
+                //bitmapSmallImageEscalada = modificarImagenes.escalarImagen(bitmapSmallImageTransparente, 1.0f);
+                bitmapSmallImageEscalada = modificarImagenes.escalarImagen(bitmapSmallImageTransparente,
+                                            matrizDeDatos.get(0).getZoom());
+
                 //Rotar la imagen
-                bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, 30.0f);
+                //bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, 30.0f);
+                bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, matrizDeDatos.get(0).getRotacion());
 
 
                 //Posicionar la imagen pequeña sobre la grande
@@ -434,7 +457,6 @@ public class ActivityVideo extends AppCompatActivity {
                 //prueba con recycle
                 bitmapSmallImageEscalada.recycle();
                 imagenFinalBitmap.recycle();
-
 
                 Log.d(xxx, "crearVideoPrototipo, Imagen grabada: "  +i);
 
