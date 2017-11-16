@@ -34,7 +34,10 @@ public class ModificarImagenes {
     public Bitmap escalarImagen(Bitmap bitmap, float escala) {
         int wantedWidth = (int)(bitmap.getWidth() * escala);
         int wantedHeight = (int)(bitmap.getHeight() * escala);
-        Log.d(xxx, "escalarImagen, nuevo ancho nueva altura: " +wantedWidth );
+        Log.d(xxx, "escalarImagen, factor de zoom en Matrizdatos.txt: " +escala );
+        Log.d(xxx, "escalarImagen, ancho original: " +bitmap.getWidth() );
+        Log.d(xxx, "escalarImagen, altura original: " +bitmap.getHeight());
+        Log.d(xxx, "escalarImagen, nuevo ancho: " +wantedWidth );
         Log.d(xxx, "escalarImagen, nueva altura: " +wantedHeight);
 
         Bitmap output = Bitmap.createBitmap(wantedWidth, wantedHeight, Bitmap.Config.ARGB_8888);
@@ -97,7 +100,7 @@ public class ModificarImagenes {
     private static final float BLUR_RADIUS = 15f;//Entre 1 y 25//
 
     public static Bitmap blur(Context context, Bitmap image, float radius) {
-        //Con este metodo no me uestra la imagen, hace algo raro con el scale bitmap. uso blur", sin escalar
+        //Con este metodo no me uestra la imagen, hace algo raro con el scale bitmap. uso blur2, sin escalar
 
         int width = Math.round(image.getWidth() * BITMAP_SCALE);
         int height = Math.round(image.getHeight() * BITMAP_SCALE);
@@ -125,8 +128,8 @@ public class ModificarImagenes {
     //http://stacktips.com/tutorials/android/how-to-create-bitmap-blur-effect-in-android-using-renderscript
     public static Bitmap blur2(Context context, Bitmap image, float radius) {
         //radius es un valor float entre Entre 1 y 25//
-        int width = Math.round(image.getWidth() * BITMAP_SCALE);
-        int height = Math.round(image.getHeight() * BITMAP_SCALE);
+        //int width = Math.round(image.getWidth() * BITMAP_SCALE);
+        //int height = Math.round(image.getHeight() * BITMAP_SCALE);
 
         //Bitmap inputBitmap = Bitmap.createScaledBitmap(image, width, height, false);
         Bitmap outputBitmap = Bitmap.createBitmap(image);

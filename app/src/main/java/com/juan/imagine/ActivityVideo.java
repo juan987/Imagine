@@ -26,6 +26,7 @@ import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacv.AndroidFrameConverter;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
+import org.bytedeco.javacv.FFmpegLogCallback;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.FrameRecorder;
@@ -302,6 +303,12 @@ public class ActivityVideo extends AppCompatActivity {
         bitmapSmallImageTransparente = changeSomePixelsToTransparent(bitmapSmallImageTransparente);
         //Inicio de medicion de tiempo de execucion
         long startTime = System.currentTimeMillis();
+
+
+        //Convertir video que quiero concatenar de formato h264 a mpeg con nombre prueba.mp4
+        convert();
+
+
         //Generar el video
         crearVideoPrototipo(arrayImagenesGrandesLinks, vidPath,
                           bitmapSmallImageTransparente, arrayMatrizDeDatos, imageWidth, imageHeight);
@@ -332,17 +339,83 @@ public class ActivityVideo extends AppCompatActivity {
     //https://stackoverflow.com/questions/18437085/how-to-merge-more-than-two-videos-using-framerecorder-javacv
     void merge(String vidPath_1, String vidPath, String vidPathConcatenado) {
         try {
+            //pongo esto para ver datos de log
+            FFmpegLogCallback.set();
+
             FFmpegFrameGrabber grabber1 = new FFmpegFrameGrabber(vidPath_1);
+            //Para resolver el problema de FrameRecorder:  avcodec_open2() error -22: Could not open audio codec
+            //asigno esto a grabber1:
+            grabber1.setAudioChannels(0);
             grabber1.start();
 
-            FrameGrabber grabber2 = new FFmpegFrameGrabber(vidPath);
+            if(grabber1.getAudioChannels() > 0){
+                Log.d(xxx, "merge, grabber1 numero de audio channels: " +grabber1.getAudioChannels());
+                Log.d(xxx, "merge, grabber1 numero de audio channels: " +grabber1.getAudioCodec());
+                Log.d(xxx, "merge, grabber1 numero de audio channels: " +grabber1.getAudioBitrate());
+
+            }else{
+                Log.d(xxx, "merge, grabber1 numero de audio channels = 0 " +grabber1.getAudioChannels());
+
+            }
+
+            //FrameGrabber grabber2 = new FFmpegFrameGrabber(vidPath);
+            FFmpegFrameGrabber grabber2 = new FFmpegFrameGrabber(vidPath);
+            grabber2.setAudioChannels(0);
             grabber2.start();
 
+
+            //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,imageWidth,imageHeight);
+            FFmpegFrameRecorder recorder2 = null;
+            try {
+                recorder2 = FFmpegFrameRecorder.createDefault(vidPathConcatenado, grabber1.getImageWidth(),
+                        grabber1.getImageHeight());
+            } catch (FrameRecorder.Exception e) {
+                e.printStackTrace();
+            }
+
+            /*
             FrameRecorder recorder2 = new FFmpegFrameRecorder(vidPathConcatenado, grabber1.getImageWidth(),
-                    grabber1.getImageHeight(), grabber1.getAudioChannels());
+                    //El audio de grabber1 NO esta soportado, es codec tipo aac
+                    //grabber1.getImageHeight(), grabber1.getAudioChannels());
+
+                    //Pero grabber2 no tiene canales de audio
+                    grabber1.getImageHeight(), grabber2.getAudioChannels());
+            */
+
+
+            //mensaje de error cuando no hago grabber1.getAudioChannels()
+            //FrameRecorder:  No audio output stream (Is audioChannels > 0 and has start() been called?)
+            //FrameRecorder recorder2 = new FFmpegFrameRecorder(vidPathConcatenado, grabber1.getImageWidth(),
+                    //grabber1.getImageHeight());
+
+
+            /*
+            Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/storage/emulated/0/HacerCosas/prueba.mp4':
+            video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, smpte170m), 640x360, 1013 kb/s
+            Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 317 kb/s
+            */
+
+
+            /*
+            Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/storage/emulated/0/HacerCosas/16_11_175926.mp4':
+            Video: mpeg4 (Simple Profile) (mp4v / 0x7634706D), yuv420p, 640x360 [SAR 1:1 DAR 16:9], 1408 kb/s
+
+            CON video codec: h264
+            Video: h264 (High 4:4:4 Predictive) (avc1 / 0x31637661), yuv420p, 640x360, 333 kb/s
+
+            */
+
+            // [swscaler @ 0xce7c4000] No accelerated colorspace conversion found from yuv420p to bgr24.
+
+
+
+
             recorder2.setFrameRate(grabber1.getFrameRate());
             recorder2.setSampleFormat(grabber1.getSampleFormat());
+            Log.e(xxx, "merge,  grabber2.getSampleFormat():  "  +grabber2.getSampleFormat());
+            Log.e(xxx, "merge,  grabber1.getSampleFormat():  "  +grabber1.getSampleFormat());
             recorder2.setSampleRate(grabber1.getSampleRate());
+
             recorder2.start();
 
             Frame frame;
@@ -361,9 +434,9 @@ public class ActivityVideo extends AppCompatActivity {
 
 
         }catch (FrameGrabber.Exception e) {
-            Log.e(xxx, "merge:  "  +e.getMessage());
+            Log.e(xxx, "merge,  FrameGrabber:  "  +e.getMessage());
         }catch (FrameRecorder.Exception e) {
-            Log.e(xxx, "merge:  "  +e.getMessage());
+            Log.e(xxx, "merge,  FrameRecorder:  "  +e.getMessage());
         }
 
     }
@@ -401,16 +474,38 @@ public class ActivityVideo extends AppCompatActivity {
         OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
         //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,640,720);
         //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,1080,1920);
-        //Loader.load(avutil.class);
-        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,imageWidth,imageHeight);
+
+
+        //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(vidPath,imageWidth,imageHeight);
+        FFmpegFrameRecorder recorder = null;
+        try {
+            recorder = FFmpegFrameRecorder.createDefault(vidPath,imageWidth,imageHeight);
+        } catch (FrameRecorder.Exception e) {
+            Log.e(xxx, "crearVideoPrototipo,  FrameRecorder.Exception:  "  +e.getMessage());
+        }
+
+
         //path de la imagen compuesta para cada frame:
         String imagenParaElVideo = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"imagenVideo.jpg";
         try {
-            recorder.setFrameRate(28);
-            recorder.setVideoCodec(avcodec.AV_CODEC_ID_MPEG4);
+            //recorder.setAspectRatio((double)(imageWidth/imageHeight));
+            recorder.setFrameRate(30);
+            //recorder.setVideoCodec(avcodec.AV_CODEC_ID_MPEG4);
+            recorder.setVideoCodecName("H264");//Coge por defecto AV_CODEC_ID_MPEG4
+            //recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
             recorder.setVideoBitrate(9000);
             recorder.setFormat("mp4");
+            recorder.setAudioCodec(org.bytedeco.javacpp.avcodec.AV_CODEC_ID_AAC);
             recorder.setVideoQuality(0); // maximum quality
+
+            //Pruebas
+            //recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);//Mal, pero este es el default
+            //recorder.setPixelFormat(avutil.AV_PIX_FMT_YUYV422);//Mal, no puede abrir el video codec
+            //recorder.setPixelFormat(avutil.AV_PIX_FMT_RGB24);//Mal, no puede abrir el video codec
+            //recorder.setPixelFormat(avutil.AV_PIX_FMT_RGB24);//Mal, no puede abrir el video codec
+
+            //pongo esto para ver datos de log
+            FFmpegLogCallback.set();
             recorder.start();
             //Asi sera en la version final
             //for (int i=0;i<links.size();i++)
@@ -479,6 +574,7 @@ public class ActivityVideo extends AppCompatActivity {
                 //la imagen de la memoria externa
                 //Guardar la imagen final
                 //guardarImagenMethod(imagenParaElVideo, imagenFinalBitmap);
+
                 //Original con el convertidor de ipl a frame
                 //recorder.record(grabberConverter.convert(cvLoadImage(imagenParaElVideo)));
 
@@ -657,4 +753,55 @@ public class ActivityVideo extends AppCompatActivity {
         protected void onCancelled() {
         }
     }//FIN de la clase ComponerImagenAsyncTask
+
+
+
+    //public static void convert(File file) {
+    public static void convert() {
+        //El 16 nov 2017
+        //Como en:
+        //https://stackoverflow.com/questions/13770376/playing-a-video-with-javacv-and-ffmpeg
+
+        String vidPath_1 = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"prueba.mp4";
+        String fileToConvert = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"pruebaconvertir.mp4";
+
+        FFmpegFrameGrabber frameGrabber =
+                new FFmpegFrameGrabber(fileToConvert);
+
+        //opencv_core.IplImage captured_frame = null;
+        Frame captured_frame = null;
+
+        FrameRecorder recorder = null;
+        recorder = new FFmpegFrameRecorder(vidPath_1, 640, 380);
+        recorder.setVideoCodec(13);
+        recorder.setFrameRate(30);
+        recorder.setFormat("mp4");
+        recorder.setAudioCodec(org.bytedeco.javacpp.avcodec.AV_CODEC_ID_AAC);
+        recorder.setVideoQuality(0); // maximum quality
+        try {
+            recorder.setAudioChannels(0);//Le quito los canales de audio
+            recorder.start();
+            frameGrabber.setAudioChannels(0);//Le quito los canales de audio
+            frameGrabber.start();
+            while (true) {
+                try {
+                    captured_frame = frameGrabber.grab();
+
+                    if (captured_frame == null) {
+                        Log.e("ActivityVideo", "convert,  captured_frame == null");
+                        break;
+                    }
+                    recorder.record(captured_frame);
+                } catch (Exception e) {
+                    Log.e("ActivityVideo", "convert,  FrameRecorder.Exception:  "  +e.getMessage());
+
+                }
+            }
+            recorder.stop();
+            recorder.release();
+            frameGrabber.release();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

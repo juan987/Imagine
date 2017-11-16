@@ -23,7 +23,7 @@ public class MatrizDeDatos {
     float coordenadaX = 0;
     float coordenadaY = 0;
     float rotacion = 0.0f;
-    float zoom = 0.0f;
+    float zoom = 1.0f;
     float gradoDeDifuminado = 0;
 
     public float getZoom() {
