@@ -241,6 +241,12 @@ public class ActivityVideo extends AppCompatActivity {
     //Todos los metodos para generar la imagen
     String vidPathConcatenado;
     String vidPath;
+    String pathAudio;
+
+    //Array list dobnde pongo el nombre de los ficheros que hay que borrar al final del proceso
+    //Hay que borrar prueba.mp4 y el video creado con los frames con nombre de fecha
+    ArrayList<String> arrayListFicherosParaBorrar = new ArrayList<>();
+
     private void metodoPrincipal(){
 
         //Recuperar el fichero con la matriz
@@ -276,8 +282,6 @@ public class ActivityVideo extends AppCompatActivity {
         //FIN 14 nov 2017: codigo original para crear una matriz de datos solo con x e y
 
 
-
-
         //Crear el array de links, solo hay una imagen
         String imagenGrande = Environment.getExternalStorageDirectory() + "/HacerCosas/"  +"lotto2_00493.jpg";
         //Obtener el tamaño de la primera imagen grande para pasarlo a crearVideoPrototipo
@@ -306,7 +310,17 @@ public class ActivityVideo extends AppCompatActivity {
 
 
         //Convertir video que quiero concatenar de formato h264 a mpeg con nombre prueba.mp4
-        convert();
+        convert(imageWidth, imageHeight);
+
+        //Convert el fichero de audio, por que los originales dan fallo de
+        //Error: [aac @ 0xd162d400] Specified sample format s16 is invalid or not supported
+        //y
+        // mergeAudio,  FrameRecorder:  avcodec_open2() error -22: Could not open audio codec.
+        pathAudio = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"ruido.mp3";
+        //pathAudio = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/" +"pruebadewhatsapp.mp3";
+        //convertAudio(pathAudio);
+        Log.e("ActivityVideo", "he vuelto de convertAudio");
+
 
 
         //Generar el video
@@ -327,11 +341,36 @@ public class ActivityVideo extends AppCompatActivity {
 
         //Pasamos los path y strings vidPath_1, que se concatena con vidPath y el resultado es vidPathConcatenado
          startTime = System.currentTimeMillis();
-        merge( vidPath_1,  vidPath,  vidPathConcatenado);
-         stopTime = System.currentTimeMillis();
+
+        //merge( vidPath_1,  vidPath,  vidPathConcatenado);
+
+        //17 nov 17, prueba con audio
+
+
+        //Prueba sin convertir el video a concatenar
+        //vidPath_1 = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"pruebaconvertir.mp4";
+
+
+
+        //String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"ruido.mp3";
+        //String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"audioConverted.mp3";
+        String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/" +"pruebadewhatsapp.mp3";
+        mergeConAudio( vidPath_1,  vidPath,  vidPathConcatenado, pathAudioFileConverted);
+
+        stopTime = System.currentTimeMillis();
          elapsedTime = stopTime - startTime;
          tiempoConcatenacionVideo = elapsedTime;
         Log.d(xxx, "metodoPrincipal, tiempo de ejecucion merge: " +elapsedTime);
+
+        //Borrado de ficheros innecesarios
+        arrayListFicherosParaBorrar.add(vidPath_1);
+        arrayListFicherosParaBorrar.add(vidPath);
+        //arrayListFicherosParaBorrar.add(pathAudioFileConverted);
+        for(int i = 0; i < arrayListFicherosParaBorrar.size(); i++){
+            deleteFileFromStore(arrayListFicherosParaBorrar.get(i));
+        }
+
+
     }//Fin de metooo principal
 
 
@@ -415,6 +454,12 @@ public class ActivityVideo extends AppCompatActivity {
             Log.e(xxx, "merge,  grabber2.getSampleFormat():  "  +grabber2.getSampleFormat());
             Log.e(xxx, "merge,  grabber1.getSampleFormat():  "  +grabber1.getSampleFormat());
             recorder2.setSampleRate(grabber1.getSampleRate());
+            recorder2.setVideoCodec(avcodec.AV_CODEC_ID_H264);
+            //recorder2.setAudioCodec(org.bytedeco.javacpp.avcodec.AV_CODEC_ID_AAC);
+
+            //Con esta linea da error y no genera el video. La quito
+            //recorder2.setVideoQuality(0); // maximum quality
+
 
             recorder2.start();
 
@@ -527,11 +572,14 @@ public class ActivityVideo extends AppCompatActivity {
                 //escalar la imagen transparente
                 //bitmapSmallImageEscalada = modificarImagenes.escalarImagen(bitmapSmallImageTransparente, 1.0f);
                 bitmapSmallImageEscalada = modificarImagenes.escalarImagen(bitmapSmallImageTransparente,
-                                            matrizDeDatos.get(0).getZoom());
+                        matrizDeDatos.get(0).getZoom());
 
-                //Rotar la imagen
-                //bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, 30.0f);
-                bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, matrizDeDatos.get(0).getRotacion());
+
+                if(matrizDeDatos.get(0).getRotacion() != 0.0f) {//rotamos si los grados son diferentes de 0.0
+                    //Rotar la imagen
+                    //bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, 30.0f);
+                    bitmapSmallImageEscalada = modificarImagenes.Rotate(bitmapSmallImageEscalada, matrizDeDatos.get(0).getRotacion());
+                }
 
 
                 //Blur de bitmap
@@ -587,7 +635,6 @@ public class ActivityVideo extends AppCompatActivity {
                 //prueba con recycle
                 bitmapSmallImageEscalada.recycle();
                 imagenFinalBitmap.recycle();
-                //bitmapBlur.recycle();
 
                 Log.d(xxx, "crearVideoPrototipo, Imagen grabada: "  +i);
 
@@ -632,6 +679,23 @@ public class ActivityVideo extends AppCompatActivity {
         return false;
     }
 
+    public boolean deleteFileFromStore(String pathToFile){
+        if(isExternalStorageWritable()) {
+            File file = new File(pathToFile);
+            if(file.delete()){
+                Log.d(xxx, "deleteFileFromStore, fichero borrado: " +pathToFile);
+                return true;
+
+            }else{
+                Log.d(xxx, "deleteFileFromStore, fichero NO borrado: " +pathToFile);
+                return false;
+            }
+
+        }else{
+            Log.d(xxx, "deleteFileFromStore, El external public storage no esta montado ");
+            return false;
+        }
+    }
 
     public Bitmap getBitmapFromStore(String pathToImage){
         Bitmap bitmap = null;
@@ -757,7 +821,7 @@ public class ActivityVideo extends AppCompatActivity {
 
 
     //public static void convert(File file) {
-    public static void convert() {
+    public static void convert(int imageWidth, int imageHeight) {
         //El 16 nov 2017
         //Como en:
         //https://stackoverflow.com/questions/13770376/playing-a-video-with-javacv-and-ffmpeg
@@ -768,15 +832,25 @@ public class ActivityVideo extends AppCompatActivity {
         FFmpegFrameGrabber frameGrabber =
                 new FFmpegFrameGrabber(fileToConvert);
 
+
         //opencv_core.IplImage captured_frame = null;
         Frame captured_frame = null;
 
-        FrameRecorder recorder = null;
-        recorder = new FFmpegFrameRecorder(vidPath_1, 640, 380);
+        //FrameRecorder recorder = null;
+        //recorder = new FFmpegFrameRecorder(vidPath_1, imageWidth, imageHeight);
+
+        FFmpegFrameRecorder recorder = null;
+        try {
+            recorder = FFmpegFrameRecorder.createDefault(vidPath_1, imageWidth, imageHeight);
+        } catch (FrameRecorder.Exception e) {
+            Log.e("ActivityVideo", "convert,  FrameRecorder.Exception:  "  +e.getMessage());
+        }
+
+
         recorder.setVideoCodec(13);
         recorder.setFrameRate(30);
         recorder.setFormat("mp4");
-        recorder.setAudioCodec(org.bytedeco.javacpp.avcodec.AV_CODEC_ID_AAC);
+        //recorder.setAudioCodec(org.bytedeco.javacpp.avcodec.AV_CODEC_ID_AAC);
         recorder.setVideoQuality(0); // maximum quality
         try {
             recorder.setAudioChannels(0);//Le quito los canales de audio
@@ -793,7 +867,7 @@ public class ActivityVideo extends AppCompatActivity {
                     }
                     recorder.record(captured_frame);
                 } catch (Exception e) {
-                    Log.e("ActivityVideo", "convert,  FrameRecorder.Exception:  "  +e.getMessage());
+                    //Log.e("ActivityVideo", "convert,  FrameRecorder.Exception:  "  +e.getMessage());
 
                 }
             }
@@ -801,6 +875,232 @@ public class ActivityVideo extends AppCompatActivity {
             recorder.release();
             frameGrabber.release();
         } catch (Exception e) {
+            Log.e("ActivityVideo", "convert,  Exception:  "  +e.getMessage());
+        }
+    }
+
+    public static void convertAudio(String audioFileToConvert) {
+        Log.e("ActivityVideo", "EN convertAudio");
+        //pongo esto para ver datos de log
+        FFmpegLogCallback.set();
+
+        //El 17 nov 2017
+        //Como en:
+        //https://stackoverflow.com/questions/13770376/playing-a-video-with-javacv-and-ffmpeg, pero adaptado a audio
+
+        String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"audioConverted.mp3";
+
+        FFmpegFrameGrabber audioGrabber =
+                new FFmpegFrameGrabber(audioFileToConvert);
+        Log.e("ActivityVideo", "EN convertAudio, audioGrabber.getAudioChannels():  " +audioGrabber.getAudioChannels());
+        Log.e("ActivityVideo", "EN convertAudio, audioGrabber.getAudioBitrate():  " +audioGrabber.getAudioBitrate());
+        Log.e("ActivityVideo", "EN convertAudio, audioGrabber.getAudioCodec():  " +audioGrabber.getAudioCodec());
+        Log.e("ActivityVideo", "EN convertAudio, audioGrabber.getAudioStream():  " +audioGrabber.getAudioStream());
+
+
+        //opencv_core.IplImage captured_frame = null;
+        Frame captured_frame = null;
+
+        //FrameRecorder recorder = null;
+        //recorder = new FFmpegFrameRecorder(vidPath_1, imageWidth, imageHeight);
+
+        //FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(pathAudioFileConverted, audioGrabber.getAudioChannels());
+        FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(pathAudioFileConverted, 2);
+
+
+
+        //recorder.setFormat("mp3");
+        //recorder.setAudioCodec(org.bytedeco.javacpp.avcodec.AV_CODEC_ID_AAC);
+        //recorder.setSampleFormat(audioGrabber.getSampleFormat());
+        //recorder.setSampleRate(audioGrabber.getSampleRate());
+        //recorder.setFrameRate(12);
+
+        try {
+            //recorder.setAudioChannels(0);//Le quito los canales de audio
+            recorder.start();
+            //audioGrabber.setAudioChannels(0);//Le quito los canales de audio
+            audioGrabber.start();
+            while (true) {
+                try {
+                    captured_frame = audioGrabber.grab();
+
+                    if (captured_frame == null) {
+                        Log.e("ActivityVideo", "convertAudio,  captured_frame == null");
+                        break;
+                    }
+                    recorder.record(captured_frame);
+                } catch (Exception e) {
+                    //Log.e("ActivityVideo", "convertAudio,  FrameRecorder.Exception:  "  +e.getMessage());
+
+                }
+            }
+            recorder.stop();
+            recorder.release();
+            audioGrabber.stop();
+            audioGrabber.release();
+        } catch (Exception e) {
+            Log.e("ActivityVideo", "convertAudio,  Exception:  "  +e.getMessage());
+        }
+    }
+
+    void mergeConAudio(String vidPath_1, String vidPath, String vidPathConcatenado, String audioPath) {
+        Log.d(xxx, "EN mergeConAudio");
+
+        //Lo hice el 17nov2017
+        try {
+            //pongo esto para ver datos de log
+            FFmpegLogCallback.set();
+
+            FFmpegFrameGrabber grabber1 = new FFmpegFrameGrabber(vidPath_1);
+            //Para resolver el problema de FrameRecorder:  avcodec_open2() error -22: Could not open audio codec
+            //asigno esto a grabber1:
+            grabber1.setAudioChannels(0);
+            grabber1.start();
+
+            if(grabber1.getAudioChannels() > 0){
+                Log.d(xxx, "mergeConAudio, grabber1 numero de audio channels: " +grabber1.getAudioChannels());
+                Log.d(xxx, "mergeConAudio, grabber1 numero de audio channels: " +grabber1.getAudioCodec());
+                Log.d(xxx, "mergeConAudio, grabber1 numero de audio channels: " +grabber1.getAudioBitrate());
+
+            }else{
+                Log.d(xxx, "mergeConAudio, grabber1 numero de audio channels = 0 " +grabber1.getAudioChannels());
+
+            }
+
+            //FrameGrabber grabber2 = new FFmpegFrameGrabber(vidPath);
+            FFmpegFrameGrabber grabber2 = new FFmpegFrameGrabber(vidPath);
+            grabber2.setAudioChannels(0);
+            grabber2.start();
+
+
+            //Grabber para el audio
+            FFmpegFrameGrabber grabber3 = new FFmpegFrameGrabber(audioPath);
+            grabber3.start();
+
+
+
+
+            FFmpegFrameRecorder recorder2 = new FFmpegFrameRecorder(vidPathConcatenado,
+                    grabber1.getImageWidth(), grabber1.getImageHeight(),
+                    grabber3.getAudioChannels());
+
+            /*
+            FrameRecorder recorder2 = new FFmpegFrameRecorder(vidPathConcatenado, grabber1.getImageWidth(),
+                    //El audio de grabber1 NO esta soportado, es codec tipo aac
+                    //grabber1.getImageHeight(), grabber1.getAudioChannels());
+
+                    //Pero grabber2 no tiene canales de audio
+                    grabber1.getImageHeight(), grabber2.getAudioChannels());
+            */
+
+
+            //mensaje de error cuando no hago grabber1.getAudioChannels()
+            //FrameRecorder:  No audio output stream (Is audioChannels > 0 and has start() been called?)
+            //FrameRecorder recorder2 = new FFmpegFrameRecorder(vidPathConcatenado, grabber1.getImageWidth(),
+            //grabber1.getImageHeight());
+
+
+            /*
+            Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/storage/emulated/0/HacerCosas/prueba.mp4':
+            video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, smpte170m), 640x360, 1013 kb/s
+            Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 317 kb/s
+            */
+
+
+            /*
+            Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/storage/emulated/0/HacerCosas/16_11_175926.mp4':
+            Video: mpeg4 (Simple Profile) (mp4v / 0x7634706D), yuv420p, 640x360 [SAR 1:1 DAR 16:9], 1408 kb/s
+
+            CON video codec: h264
+            Video: h264 (High 4:4:4 Predictive) (avc1 / 0x31637661), yuv420p, 640x360, 333 kb/s
+
+            */
+
+            // [swscaler @ 0xce7c4000] No accelerated colorspace conversion found from yuv420p to bgr24.
+
+
+
+
+            //No le tengo que poner nada de caracteristicas de audio al recorder
+            recorder2.setFrameRate(grabber1.getFrameRate());
+            //recorder2.setSampleFormat(grabber3.getSampleFormat());
+            Log.e(xxx, "mergeConAudio,  grabber2.getSampleFormat():  "  +grabber2.getSampleFormat());
+            Log.e(xxx, "mergeConAudio,  grabber1.getSampleFormat():  "  +grabber1.getSampleFormat());
+            //recorder2.setSampleRate(grabber3.getSampleRate());
+            recorder2.setVideoCodec(avcodec.AV_CODEC_ID_H264);
+            //recorder2.setAudioCodec(org.bytedeco.javacpp.avcodec.AV_CODEC_ID_AAC);
+
+            //Con esta linea da error y no genera el video. La quito
+            //recorder2.setVideoQuality(0); // maximum quality
+
+
+
+            recorder2.start();
+
+            Frame frame, frame2;
+            int j = 0;
+            while ((frame = grabber1.grabFrame()) != null) {
+                j++;
+                recorder2.record(frame);
+                if((frame2 = grabber3.grabFrame()) != null){
+                    //Log.e(xxx, "mergeConAudio,  audio grabber no es null:  ");
+                    Log.e(xxx, "mergeConAudio,  audio grabber getFrameNumber:  " +grabber3.getFrameNumber());
+                    Log.e(xxx, "mergeConAudio,  grabber1 getFrameNumber:  " +grabber1.getFrameNumber());
+
+                    recorder2.record(frame2);
+                }
+            }
+            while ((frame = grabber2.grabFrame()) != null) {
+                recorder2.record(frame);
+            }
+
+            recorder2.stop();
+            grabber2.stop();
+            grabber1.stop();
+
+
+        }catch (FrameGrabber.Exception e) {
+            Log.e(xxx, "mergeConAudio,  FrameGrabber:  "  +e.getMessage());
+        }catch (FrameRecorder.Exception e) {
+            Log.e(xxx, "mergeConAudio,  FrameRecorder:  "  +e.getMessage());
+        }
+
+    }
+
+
+    private void codigoEjemploConMp3(){
+        //Como en
+        //https://groups.google.com/forum/#!topic/javacv/TdppyNYxeFU
+        FrameGrabber grabber1 = new FFmpegFrameGrabber("video.avi");
+        FrameGrabber grabber2 = new FFmpegFrameGrabber("audio.mp3");
+        try {
+            grabber1.start();
+            grabber2.start();
+
+
+        FrameRecorder recorder = new FFmpegFrameRecorder("output.mp4",
+                grabber1.getImageWidth(), grabber1.getImageHeight(),
+                grabber2.getAudioChannels());
+        recorder.setFrameRate(grabber1.getFrameRate());
+        recorder.setSampleFormat(grabber2.getSampleFormat());
+        recorder.setSampleRate(grabber2.getSampleRate());
+        try {
+            recorder.start();
+
+        Frame frame1, frame2 = null;
+        while ((frame1 = grabber1.grabFrame()) != null ||
+                (frame2 = grabber2.grabFrame()) != null) {
+            recorder.record(frame1);
+            recorder.record(frame2);
+        }
+
+        recorder.stop();
+        } catch (FrameRecorder.Exception e) {
+            e.printStackTrace();
+        }
+        grabber1.stop();
+        grabber2.stop();
+        } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
         }
     }
