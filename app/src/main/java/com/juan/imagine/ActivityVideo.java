@@ -1010,7 +1010,7 @@ public class ActivityVideo extends AppCompatActivity {
             //recorder2.setVideoBitrate(1425227);
 
             //recorder.setVideoQuality(1);
-            recorder2.setSampleRate(grabber3.getSampleRate());
+            //recorder2.setSampleRate(grabber3.getSampleRate());
 
 
             //No genera el video concatenado cuando quito esta linea o la dejo
@@ -1036,6 +1036,7 @@ public class ActivityVideo extends AppCompatActivity {
 
             boolean boolLoopWhile = true;
             int intframeImageNull = 0;
+            int intframeAudioSample = 0;
             while (boolLoopWhile) {
                 frame = grabber1.grabFrame();
                 frame2 = grabber3.grabFrame(true, false, false, false);
@@ -1061,13 +1062,24 @@ public class ActivityVideo extends AppCompatActivity {
                         recorder2.setTimestamp(time);
                     }
 
+                    /*
+                    //Nunca entra aqui
                     if (frame.image == null) {
                         intframeImageNull++;
-                        Log.d(xxx, "mergeConAudio_Sincronizado_2,  rame.image == null:   " +intframeImageNull);
+                        Log.d(xxx, "mergeConAudio_Sincronizado_2,  frame.image == null:   " +intframeImageNull);
+
+                    }  */
+
+                    //Nunca entra aqui
+                    /*
+                    if (frame2.samples == null) {
+                        intframeAudioSample++;
+                        Log.d(xxx, "mergeConAudio_Sincronizado_2,  frame2.samples == null:   " +intframeAudioSample);
 
                     }
+                    */
 
-                    recorder2.record(frame2);
+                    //recorder2.record(frame2);
 
                     recorder2.record(frame);
                 }else{
@@ -1081,18 +1093,18 @@ public class ActivityVideo extends AppCompatActivity {
 
 
 
-            /*
+
             while ((frame = grabber2.grabFrame()) != null) {
                 Log.d(xxx, "mergeConAudio_Sincronizado,  grabber2 getFrameNumber:  " +grabber2.getFrameNumber());
 
                 //recorder2.setTimestamp(grabber2.getTimestamp());
                 recorder2.record(frame);
                 if((frame2 = grabber3.grabFrame()) != null){
-                    Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber no es null  Con grabber2:  ");
-                    Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber getFrameNumber:  " +grabber3.getFrameNumber());
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber no es null  Con grabber2:  ");
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber getFrameNumber:  " +grabber3.getFrameNumber());
                     //Log.e(xxx, "mergeConAudio,  audio grabber getAudioChannels:  " +grabber3.getAudioChannels());
 
-                    recorder2.record(frame2);
+                    //recorder2.record(frame2);
                     //recorder2.record(frame);
 
                 }else{
@@ -1100,9 +1112,9 @@ public class ActivityVideo extends AppCompatActivity {
                     //grabber3.stop();
                     //grabber3.start();
                     Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber es null  Con grabber2, reinicia grabber3:  ");
-                    grabber3.restart();
+                    //grabber3.restart();
                 }
-            }  */
+            }
 
             recorder2.stop();
             recorder2.release();
@@ -1110,9 +1122,69 @@ public class ActivityVideo extends AppCompatActivity {
             grabber2.release();
             grabber1.stop();
             grabber1.release();
+            //grabber3.stop();
+            //grabber3.release();
+
+            //*************************************************************************************
+            grabber1 = new FFmpegFrameGrabber(vidPathConcatenado);
+
+            //Para resolver el problema de FrameRecorder:  avcodec_open2() error -22: Could not open audio codec
+            //asigno esto a grabber1:
+            grabber1.setAudioChannels(2);
+            grabber1.start();
+
+            recorder2 = new FFmpegFrameRecorder(Environment.getExternalStorageDirectory() + "/HacerCosas/" +"mivideofinal.mp4",
+                    grabber1.getImageWidth(), grabber1.getImageHeight(),
+                    grabber3.getAudioChannels()); //grabber3 tiene dos canales de audio
+            //recorder2.setFrameRate(grabber1.getFrameRate());
+            recorder2.setFrameRate(30);
+
+            //recorder2.setSampleRate(grabber3.getSampleRate());
+            int sampleAudioRateInHz = 44100;
+
+            //int sampleAudioRateInHz = 22050;
+            recorder2.setSampleRate(sampleAudioRateInHz);
+
+
+            //Esta linea se puede poner o no, parece que mpeg es el default
+            recorder2.setVideoCodec(13);//MPEG
+
+            recorder2.start();
+
+
+
+            //Ahora le pongo el audio a todo el video
+            while ((frame = grabber1.grabFrame()) != null) {
+                Log.d(xxx, "mergeConAudio_Sincronizado,  todo el video grabber1 getFrameNumber:  " +grabber1.getFrameNumber());
+
+                //recorder2.setTimestamp(grabber2.getTimestamp());
+                recorder2.record(frame);
+                if((frame2 = grabber3.grabFrame()) != null){
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber no es null  Con grabber2:  ");
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber getFrameNumber:  " +grabber3.getFrameNumber());
+                    //Log.e(xxx, "mergeConAudio,  audio grabber getAudioChannels:  " +grabber3.getAudioChannels());
+                    //recorder2.record(frame2);
+                    //recorder2.record(frame);
+
+
+                    //recorder2.record(frame2);
+                    //recorder2.recordSamples(44100, 2, frame2.samples );
+                    recorder2.recordSamples(frame2.sampleRate, 2, frame2.samples );
+                }else{
+                    //reiniciar el audio
+                    //grabber3.stop();
+                    //grabber3.start();
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber es null  Con grabber2, reinicia grabber3:  ");
+                    //grabber3.restart();
+                }
+            }
+
+            recorder2.stop();
+            recorder2.release();
+            grabber1.stop();
+            grabber1.release();
             grabber3.stop();
             grabber3.release();
-
 
 
         }catch (FrameGrabber.Exception e) {
