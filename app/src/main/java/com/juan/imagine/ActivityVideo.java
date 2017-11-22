@@ -354,12 +354,12 @@ public class ActivityVideo extends AppCompatActivity {
         //vidPath_1 = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"Conlosgatos.mp4";
 
 
-        //String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"ruido.mp3";
+        String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"ruido.mp3";
         //String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"audioConverted.mp3";
-        String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/" +"pruebadewhatsapp.mp3";
+        //String pathAudioFileConverted = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/" +"pruebadewhatsapp.mp3";
         //mergeConAudio( vidPath_1,  vidPath,  vidPathConcatenado, pathAudioFileConverted);
-        //mergeConAudio_Sincronizado( vidPath_1,  vidPath,  vidPathConcatenado, pathAudioFileConverted);
-        mergeConAudio_Sincronizado_2( vidPath_1,  vidPath,  vidPathConcatenado, pathAudioFileConverted);
+        mergeConAudio_Sincronizado( vidPath_1,  vidPath,  vidPathConcatenado, pathAudioFileConverted);
+        //mergeConAudio_Sincronizado_2( vidPath_1,  vidPath,  vidPathConcatenado, pathAudioFileConverted);
 
         stopTime = System.currentTimeMillis();
          elapsedTime = stopTime - startTime;
@@ -1238,6 +1238,9 @@ public class ActivityVideo extends AppCompatActivity {
             Log.d(xxx, "mergeConAudio_Sincronizado,  grabber3.getAudioBitrate():  " +grabber3.getAudioBitrate());
             //recorder2.setVideoBitrate(1425227);
 
+
+
+
             //recorder.setVideoQuality(1);
             recorder2.setSampleRate(grabber3.getSampleRate());
 
@@ -1250,6 +1253,12 @@ public class ActivityVideo extends AppCompatActivity {
             //recorder2.setAudioBitrate(grabber3.getAudioBitrate());
 
 
+            //int allFramesGrabber1 = grabber1.getLengthInFrames();
+            //int allFramesGrabber2 = grabber2.getLengthInFrames();
+            //int allFramesGrabber3 = grabber3.getLengthInFrames();
+            Log.d(xxx, "mergeConAudio_Sincronizado,  allFramesGrabber1:  " +grabber1.getLengthInFrames());
+            Log.d(xxx, "mergeConAudio_Sincronizado,  allFramesGrabber2:  " +grabber2.getLengthInFrames());
+            Log.d(xxx, "mergeConAudio_Sincronizado,  allFramesGrabber3:  " +grabber3.getLengthInFrames());
 
 
 
@@ -1271,8 +1280,8 @@ public class ActivityVideo extends AppCompatActivity {
             while ((frame = grabber1.grabFrame()) != null) {
                 Log.d(xxx, "mergeConAudio_Sincronizado,  grabber1 getFrameNumber:  " +grabber1.getFrameNumber());
 
-                //Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getTimestamp():  " +recorder2.getTimestamp());
-                //Log.d(xxx, "mergeConAudio_Sincronizado,  grabber1.getTimestamp():  " +grabber1.getTimestamp());
+                Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getTimestamp():  " +recorder2.getTimestamp());
+                Log.d(xxx, "mergeConAudio_Sincronizado,  grabber1.getTimestamp():  " +grabber1.getTimestamp());
 
                 //recorder2.setTimestamp(grabber1.getTimestamp());
                 if (recorder2.getTimestamp() < grabber1.getTimestamp()) {
@@ -1289,7 +1298,7 @@ public class ActivityVideo extends AppCompatActivity {
 
 
                 if((frame2 = grabber3.grabFrame()) != null){
-                    Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber no es null:  ");
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber no es null:  ");
                     //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber getFrameNumber:  " +grabber3.getFrameNumber());
                     Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber time stamp:  " +grabber3.getTimestamp());
 
@@ -1306,7 +1315,7 @@ public class ActivityVideo extends AppCompatActivity {
                         Log.d(xxx, "mergeConAudio_Sincronizado, TIMESTAMP Audio  recorder2.getTimestamp() > grabber3.getTimestamp())");
 
                     }  */
-                    recorder2.record(frame2);
+                    //recorder2.record(frame2);
 
                     recorder2.record(frame);
 
@@ -1323,7 +1332,7 @@ public class ActivityVideo extends AppCompatActivity {
 
             //Reinicializo el audio
             //grabber3.stop();
-            //grabber3.restart();
+            grabber3.restart();
             //grabber3.start();
 
 
@@ -1336,18 +1345,53 @@ public class ActivityVideo extends AppCompatActivity {
             //grabber3.start();//Grabber 3 tiene dos canales de audio
 
 
-            /*
+            //grabber3.setTimestamp(grabber2.getTimestamp());
+
             while ((frame = grabber2.grabFrame()) != null) {
                 Log.d(xxx, "mergeConAudio_Sincronizado,  grabber2 getFrameNumber:  " +grabber2.getFrameNumber());
 
-                //recorder2.setTimestamp(grabber2.getTimestamp());
-                recorder2.record(frame);
-                if((frame2 = grabber3.grabFrame()) != null){
-                    Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber no es null  Con grabber2:  ");
-                    Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber getFrameNumber:  " +grabber3.getFrameNumber());
-                    //Log.e(xxx, "mergeConAudio,  audio grabber getAudioChannels:  " +grabber3.getAudioChannels());
+                Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getTimestamp() antes:  " +recorder2.getTimestamp());
+                //Log.d(xxx, "mergeConAudio_Sincronizado,  grabber2.getTimestamp():  " +grabber2.getTimestamp());
 
-                    recorder2.record(frame2);
+
+                if (recorder2.getTimestamp() < grabber2.getTimestamp()) {
+                    recorder2.setTimestamp(grabber2.getTimestamp());
+                    //Log.d(xxx, "mergeConAudio_Sincronizado, TIMESTAMP  recorder2.getTimestamp() < grabber2.getTimestamp())");
+
+                }
+
+
+
+
+                recorder2.record(frame);
+                recorder2.record(grabber3.grabFrame());
+                Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getFrameNumber():  " +recorder2.getFrameNumber());
+                Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getTimestamp() despues:  " +recorder2.getTimestamp());
+                Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getFrameRate():  " +recorder2.getFrameRate());
+                Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getVideoBitrate():  " +recorder2.getVideoBitrate());
+
+
+
+
+                /*
+                if((frame2 = grabber3.grabFrame()) != null){
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber no es null  Con grabber2:  ");
+                    //Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber getFrameNumber:  " +grabber3.getFrameNumber());
+
+
+
+
+                    Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber time stamp:  " +grabber3.getTimestamp());
+
+
+                    if (recorder2.getTimestamp() < grabber3.getTimestamp()) {
+                        recorder2.setTimestamp(grabber3.getTimestamp());
+                        Log.d(xxx, "mergeConAudio_Sincronizado, TIMESTAMP  recorder2.getTimestamp() < grabber3.getTimestamp())");
+
+                    }
+
+                        recorder2.record(frame2);
+
                     //recorder2.record(frame);
 
                 }else{
@@ -1356,8 +1400,8 @@ public class ActivityVideo extends AppCompatActivity {
                     //grabber3.start();
                     Log.d(xxx, "mergeConAudio_Sincronizado,  audio grabber es null  Con grabber2, reinicia grabber3:  ");
                     grabber3.restart();
-                }
-            }  */
+                }  */
+            }
 
             recorder2.stop();
             recorder2.release();
@@ -1371,9 +1415,9 @@ public class ActivityVideo extends AppCompatActivity {
 
 
         }catch (FrameGrabber.Exception e) {
-            Log.d(xxx, "mergeConAudio_Sincronizado,  FrameGrabber:  "  +e.getMessage());
+            Log.d(xxx, "mergeConAudio_Sincronizado,  FrameGrabber Exception:  "  +e.getMessage());
         }catch (FrameRecorder.Exception e) {
-            Log.d(xxx, "mergeConAudio_Sincronizado,  FrameRecorder:  "  +e.getMessage());
+            Log.d(xxx, "mergeConAudio_Sincronizado,  FrameRecorder Exception:  "  +e.getMessage());
         }
         Log.d(xxx, "FIN de mergeConAudio_Sincronizado");
 
@@ -1422,11 +1466,13 @@ public class ActivityVideo extends AppCompatActivity {
 
             FFmpegFrameRecorder recorder2 = new FFmpegFrameRecorder(vidPathConcatenado,
                     grabber1.getImageWidth(), grabber1.getImageHeight(),
-                    //grabber3.getAudioChannels()); //grabber3 tiene dos canales de audio
-                    4);
+                    grabber3.getAudioChannels()); //grabber3 tiene dos canales de audio
+                    //4);
 
 
             recorder2.setFrameRate(grabber1.getFrameRate());
+            Log.d(xxx, "mergeConAudio,  rabber1.getFrameRate():  " +grabber1.getFrameRate());
+
 
             //No genera el video concatenado cuando quito esta linea o la dejo
             recorder2.setVideoCodec(avcodec.AV_CODEC_ID_H264);
@@ -1504,7 +1550,10 @@ public class ActivityVideo extends AppCompatActivity {
             grabber1.stop();
             grabber3.stop();
 
-
+            recorder2.release();
+            grabber2.release();
+            grabber1.release();
+            grabber3.release();
 
         }catch (FrameGrabber.Exception e) {
             Log.d(xxx, "mergeConAudio,  FrameGrabber:  "  +e.getMessage());
