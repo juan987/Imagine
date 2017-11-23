@@ -42,6 +42,7 @@ import java.util.List;
 
 import static org.bytedeco.javacpp.opencv_imgcodecs.cvLoadImage;
 
+
 public class ActivityVideo extends AppCompatActivity {
     String xxx = this.getClass().getSimpleName();
     Bitmap imagenSuperponerBitMap;
@@ -1280,6 +1281,7 @@ public class ActivityVideo extends AppCompatActivity {
 
             Frame frame, frame2;
 
+            //while para grabar el video estatico
             while ((frame = grabber1.grabFrame()) != null) {
                 //Log.d(xxx, "mergeConAudio_Sincronizado,  grabber1 getFrameNumber:  " +grabber1.getFrameNumber());
                 //Log.d(xxx, "mergeConAudio_Sincronizado,  recorder2.getTimestamp():  " +recorder2.getTimestamp());
@@ -1352,6 +1354,7 @@ public class ActivityVideo extends AppCompatActivity {
 
             //grabber3.setTimestamp(grabber2.getTimestamp());
 
+            //while para grabar el video de los frames
             while ((frame = grabber2.grabFrame()) != null) {
                 Log.d(xxx, "mergeConAudio_Sincronizado,  grabber2 getFrameNumber:  " +grabber2.getFrameNumber());
 
@@ -1413,11 +1416,16 @@ public class ActivityVideo extends AppCompatActivity {
             }
 
 
+
             //**********************************
             //**********************************
             //GESTION DEL SONIDO
 
-            recorder2.setAudioChannels(1);
+
+
+
+            //Log.d(xxx, "mergeConAudio_Sincronizado,  grabber1.getTimestamp():  " +grabber1.getTimestamp());
+
 
             //Grabber para el audio de numero
             String audioPathNumero = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"20.mp3";
@@ -1436,7 +1444,11 @@ public class ActivityVideo extends AppCompatActivity {
             int intFramesGrraber2 = grabber2.getLengthInFrames();
 
 
-            for(int i = 0; i < intFramesGrraber1; i++){
+            //Loop 1
+            //he probado que no se mezcla bien el audio del numero con el ruido de la calle
+            //Si pongo 2 veces el audio de la calle, no se queda cortado el audio de los ultimos segundos del video estatico
+            //con una sola vez, se pierden varios segundos de audio por que el audio se graba mas rapido que los frames de video.
+            for(int i = 0; i < 0; i++){
                 Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO contador:  " +i);
                 //Con grabFrame o grabSample, el resultado es el mismo
                 //recorder2.record(grabber3.grabFrame());
@@ -1444,6 +1456,7 @@ public class ActivityVideo extends AppCompatActivity {
                 recorder2.record(grabber3.grabSamples());
                 recorder2.record(grabber3.grabSamples());
                 recorder2.record(grabber4.grabSamples());
+                //Al mezclar los grabbers, el sonido sale distorsionado
 
                 Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO grabber3.getLengthInTime:  " +grabber3.getLengthInTime());
                 Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO grabber3.getTimestamp:  " +grabber3.getTimestamp());
@@ -1453,6 +1466,9 @@ public class ActivityVideo extends AppCompatActivity {
                 Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO recorder2.getTimestamp() despues:  " +recorder2.getTimestamp());
             }
 
+            //Loop 2
+            // El grabber 4 se append al final del audio en loop1, o si no se ejecuto el loop 1,
+            //se pone al principio del video, Si le cambio el tiemstamp a grabber4, entonces NO graba el audio
             for(int i = 0; i < 0; i++){
                 Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO loop de numero, contador:  " +i);
                 //Con grabFrame o grabSample, el resultado es el mismo
@@ -1460,6 +1476,9 @@ public class ActivityVideo extends AppCompatActivity {
                 //recorder2.record(grabber4.grabFrame());
                 //recorder2.record(grabber3.grabSamples());
                 //recorder2.record(grabber3.grabSamples());
+
+                //grabber4.setTimestamp(5000000);
+
                 recorder2.record(grabber4.grabSamples());
 
                 //Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO grabber3.getLengthInTime:  " +grabber3.getLengthInTime());
@@ -1469,6 +1488,117 @@ public class ActivityVideo extends AppCompatActivity {
                 Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO recorder2.getFrameNumber():  " +recorder2.getFrameNumber());
                 Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO recorder2.getTimestamp() despues:  " +recorder2.getTimestamp());
             }
+
+
+            //Se ha generado la parte del video, obtengo el total de frames y el time stamp de recorder2
+            long longDuracionRecorder2 = recorder2.getTimestamp();
+            int intNumFramesRecorder2 = recorder2.getFrameNumber();
+
+            //y de grabber 1 grabber 2, que son los videos
+            long longDuracionVideoEstatico = grabber1.getLengthInTime();
+            long longDuracionVideoConFrames = grabber2.getLengthInTime();
+
+
+
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //Generacion del audio total
+
+            String pathAudioFileEntero = Environment.getExternalStorageDirectory() + "/HacerCosas/" +"audioEntero.mp3";
+            Frame captured_frame = null;
+            FFmpegFrameRecorder recorderAudio = new FFmpegFrameRecorder(pathAudioFileEntero, 2);
+            recorderAudio.start();
+            //Loop para el audio del video estatico
+            Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO Entrando en el loop del sonido de video estatico:  " +System.currentTimeMillis());
+            Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO longDuracionVideoEstatico:  " +longDuracionVideoEstatico);
+
+            long startTime = System.currentTimeMillis();
+            while(1000 * (System.currentTimeMillis() - startTime) < longDuracionVideoEstatico) {
+                captured_frame = grabber3.grab();
+                if (captured_frame != null) {
+
+
+                    /*
+                        if (captured_frame == null) {
+                            Log.e(xxx, "mergeConAudio_Sincronizado,  captured_frame de ruido == null");
+                            break;
+                        } */
+                    recorderAudio.record(captured_frame);
+
+                }else{
+                    Log.e(xxx, "mergeConAudio_Sincronizado,  captured_frame de ruido == null");
+                    break;
+                }
+
+
+            }
+            Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO saliendo en el loop del sonido de video estatico: " +System.currentTimeMillis());
+
+
+
+
+            //Loop para el audio del video con frames
+            Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO Entrando en el loop del sonido de video de frames: " +System.currentTimeMillis());
+            Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO longDuracionVideoConFrames:  " +longDuracionVideoConFrames);
+            startTime = System.currentTimeMillis();//Reiniciar el startTime
+
+            while(1000 * ( System.currentTimeMillis() - startTime) < longDuracionVideoConFrames){
+                captured_frame = grabber4.grab();
+                if (captured_frame != null) {
+
+
+
+                    /*
+                    if (captured_frame == null) {
+                        Log.e(xxx, "mergeConAudio_Sincronizado,  captured_frame de numero == null");
+                        break;
+                    }*/
+                    recorderAudio.record(captured_frame);
+
+                }else{
+                    Log.e(xxx, "mergeConAudio_Sincronizado,  captured_frame de numero == null");
+                    break;
+                }
+
+
+
+            }
+            Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO saliendo en el loop del sonido de video de frames: " +System.currentTimeMillis());
+
+
+            //Paro y libero el recorder de audio
+            recorderAudio.stop();
+            recorderAudio.release();
+
+            //Incorporamos el audio total al video total
+            FFmpegFrameGrabber grabberDeAudioTotal = new FFmpegFrameGrabber(pathAudioFileEntero);
+            grabberDeAudioTotal.start();
+            Log.d(xxx, "mergeConAudio_Sincronizado,  grabberDeAudioTotal.getLengthInFrames:  " +grabberDeAudioTotal.getLengthInFrames());
+            Log.d(xxx, "mergeConAudio_Sincronizado,  grabberDeAudioTotal.getLengthInTime():  " +grabberDeAudioTotal.getLengthInTime());
+
+            //FIN de Generacion del audio total
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+            //Agregamos el sonido total a recorder2
+            int totalFramesVideoConcatenado = grabber1.getLengthInFrames() + grabber2.getLengthInFrames();
+            Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO totalFramesVideoConcatenado:  " +totalFramesVideoConcatenado);
+
+            //for(int i = 0; i < totalFramesVideoConcatenado; i++){
+            //Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO contador:  " +i);
+            while((frame = grabberDeAudioTotal.grabSamples()) != null){
+                //Con grabFrame o grabSample, el resultado es el mismo
+                //recorder2.record(grabberDeAudioTotal.grabSamples());
+                recorder2.record(frame);
+
+                Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO grabberDeAudioTotal.getLengthInTime:  " +grabberDeAudioTotal.getLengthInTime());
+                Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO grabberDeAudioTotal.getTimestamp:  " +grabberDeAudioTotal.getTimestamp());
+
+                Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO recorder2.getFrameNumber():  " +recorder2.getFrameNumber());
+                Log.d(xxx, "mergeConAudio_Sincronizado, GESTION DEL SONIDO recorder2.getTimestamp() despues:  " +recorder2.getTimestamp());
+            }
+
+            //Fin de gestion del sonido
             //**********************************
             //**********************************
 
@@ -1482,6 +1612,8 @@ public class ActivityVideo extends AppCompatActivity {
             grabber3.release();
             grabber4.stop();
             grabber4.release();
+            grabberDeAudioTotal.stop();
+            grabberDeAudioTotal.release();
 
 
 
@@ -1489,6 +1621,8 @@ public class ActivityVideo extends AppCompatActivity {
             Log.d(xxx, "mergeConAudio_Sincronizado,  FrameGrabber Exception:  "  +e.getMessage());
         }catch (FrameRecorder.Exception e) {
             Log.d(xxx, "mergeConAudio_Sincronizado,  FrameRecorder Exception:  "  +e.getMessage());
+        } catch (Exception e) {
+            Log.d(xxx, "mergeConAudio_Sincronizado Loop de Audio,  Exception:  "  +e.getMessage());
         }
         Log.d(xxx, "FIN de mergeConAudio_Sincronizado");
 
