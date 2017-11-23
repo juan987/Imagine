@@ -1581,7 +1581,7 @@ public class ActivityVideo extends AppCompatActivity {
                         boolAudioRuidoFinal = false;
 
                         //En el ruido final, todos los audios a cero
-                         boolAudioRuido1 = true;
+                         boolAudioRuido1 = false;
                          boolAudioRuido2 = false;
                          boolAudioRuido3 = false;
                          boolAudioRuido4 = false;
