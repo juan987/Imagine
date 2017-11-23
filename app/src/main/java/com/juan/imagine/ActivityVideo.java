@@ -725,7 +725,7 @@ public class ActivityVideo extends AppCompatActivity {
             bitmap = BitmapFactory.decodeFile(pathToImage);
             if(bitmap != null){
 
-                Log.d(xxx, "getBitmapFromStore, Imagen cargada " +pathToImage);
+                //Log.d(xxx, "getBitmapFromStore, Imagen cargada " +pathToImage);
             }else{
                 Log.d(xxx, "getBitmapFromStore, ERROR: Imagen NO cargada" );
             }
@@ -1411,6 +1411,7 @@ public class ActivityVideo extends AppCompatActivity {
             boolean boolNumero5 = false;
             boolean boolNumero6 = false;
             boolean boolAudioRuidoFinal = false;
+            boolean boolAndTheSixNumberIs = false;
 
 
 
@@ -1421,6 +1422,7 @@ public class ActivityVideo extends AppCompatActivity {
             String audioPathNumero_4 = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"28.mp3";
             String audioPathNumero_5 = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"17.mp3";
             String audioPathNumero_6 = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"20.mp3";
+            String audioAndTheSixNumberIs = Environment.getExternalStorageDirectory() + "/HacerCosas/audios/"  +"And the sixth number.mp3";
 
             //y seis grabbers para los numeros
             FFmpegFrameGrabber grabber_audioPathNumero_1 = new FFmpegFrameGrabber(audioPathNumero_1);
@@ -1436,12 +1438,18 @@ public class ActivityVideo extends AppCompatActivity {
             FFmpegFrameGrabber grabber_audioPathNumero_6 = new FFmpegFrameGrabber(audioPathNumero_6);
             grabber_audioPathNumero_6.start();
 
+            FFmpegFrameGrabber grabberAudioAndTheSixNumberIs = new FFmpegFrameGrabber(audioAndTheSixNumberIs);
+            grabberAudioAndTheSixNumberIs.start();
+
 
 
 
 
             //Y un long para poner el < del if segun lo necesite
             long longDuracionDelCaptureFrame = longDuracionVideoConFrames; //Inicialmente
+
+            //Tiempo acumulado de grabacion de audio
+            long longTiempoAcumuladoGrabacionAudio = 0;
             while(1000 * ( System.currentTimeMillis() - startTime) < longDuracionVideoConFrames){
                 captured_frame = grabberGenerico.grab();
 
@@ -1463,6 +1471,10 @@ public class ActivityVideo extends AppCompatActivity {
                 }else {//Viene al else cada vez que se cumple la primera o segunda parte del if
                     Log.e(xxx, "mergeConAudio_Sincronizado,  captured_frame de numero == null");
                     if (boolAudioRuido1) {
+
+                        longTiempoAcumuladoGrabacionAudio += grabberGenerico.getTimestamp();
+
+
                         //longDuracionDelCaptureFrame = grabberGenerico.getTimestamp() + 1000000;//1000000 es para meter un segundo de ruido en microseg
 
                         //Solo quiero que se grabe durante un segundo
@@ -1470,12 +1482,15 @@ public class ActivityVideo extends AppCompatActivity {
                         grabberGenerico.stop();
                         grabberGenerico = grabber3;//grabber 3 tiene el ruido
                         grabberGenerico.restart();
+
                         boolAudioRuido1 = false;
                         boolNumero1 = true;
 
 
-
                     } else if (boolNumero1) {
+                        longTiempoAcumuladoGrabacionAudio += grabberGenerico.getTimestamp();
+
+
                         longDuracionDelCaptureFrame = longDuracionVideoConFrames;
 
                         boolNumero1 = false;
@@ -1487,6 +1502,9 @@ public class ActivityVideo extends AppCompatActivity {
 
 
                     } else if (boolAudioRuido2){
+
+                        longTiempoAcumuladoGrabacionAudio += grabberGenerico.getTimestamp();
+
                         //longDuracionDelCaptureFrame = grabberGenerico.getTimestamp() + 1000000;//1000000 es para meter un segundo de ruido en microseg
 
                         //Solo quiero que se grabe durante un segundo
@@ -1501,18 +1519,60 @@ public class ActivityVideo extends AppCompatActivity {
 
 
                     } else if (boolNumero2){
+
+                        longTiempoAcumuladoGrabacionAudio += grabberGenerico.getTimestamp();
+
                         longDuracionDelCaptureFrame = longDuracionVideoConFrames;
 
                         boolNumero2 = false;
-                        boolAudioRuidoFinal = true;
+                        boolAudioRuido3 = true;
 
                         grabberGenerico.stop();
                         grabberGenerico = grabber_audioPathNumero_2;
                         grabberGenerico.restart();
 
+                    } else if (boolAudioRuido3){
+
+                        longTiempoAcumuladoGrabacionAudio += grabberGenerico.getTimestamp();
+
+                        //longDuracionDelCaptureFrame = grabberGenerico.getTimestamp() + 1000000;//1000000 es para meter un segundo de ruido en microseg
+
+                        //Solo quiero que se grabe durante un segundo
+                        longDuracionDelCaptureFrame = 1000000;//1000000 es para meter un segundo de ruido en microseg
+
+                        grabberGenerico.stop();
+                        grabberGenerico = grabber3;
+                        grabberGenerico.restart();
+
+                        boolAudioRuido3 = false;
+                        boolAndTheSixNumberIs = true;
+
+                    } else if (boolAndTheSixNumberIs){
+                        longTiempoAcumuladoGrabacionAudio += grabberGenerico.getTimestamp();
+
+                        longDuracionDelCaptureFrame = longDuracionVideoConFrames;
+
+                        boolAndTheSixNumberIs = false;
+                        boolNumero3 = true;
+
+                        grabberGenerico.stop();
+                        grabberGenerico = grabberAudioAndTheSixNumberIs;
+                        grabberGenerico.restart();
+
+                    } else if (boolNumero3){
+                        longTiempoAcumuladoGrabacionAudio += grabberGenerico.getTimestamp();
+
+                        longDuracionDelCaptureFrame = longDuracionVideoConFrames;
+
+                        boolNumero3 = false;
+                        boolAudioRuidoFinal = true;
+
+                        grabberGenerico.stop();
+                        grabberGenerico = grabber_audioPathNumero_3;
+                        grabberGenerico.restart();
 
                     } else if (boolAudioRuidoFinal){
-                        longDuracionDelCaptureFrame = longDuracionVideoConFrames;
+                        longDuracionDelCaptureFrame = longDuracionVideoConFrames  - longTiempoAcumuladoGrabacionAudio;
 
                         grabberGenerico.stop();
                         grabberGenerico = grabber3;
@@ -1521,12 +1581,20 @@ public class ActivityVideo extends AppCompatActivity {
                         boolAudioRuidoFinal = false;
 
                         //En el ruido final, todos los audios a cero
+                         boolAudioRuido1 = true;
+                         boolAudioRuido2 = false;
+                         boolAudioRuido3 = false;
+                         boolAudioRuido4 = false;
+                         boolAudioRuido5 = false;
+                         boolAudioRuido6 = false;
                          boolNumero1 = false;
                          boolNumero2 = false;
                          boolNumero3 = false;
                          boolNumero4 = false;
                          boolNumero5 = false;
                          boolNumero6 = false;
+                         boolAudioRuidoFinal = false;
+                         boolAndTheSixNumberIs = false;
 
                     }else{
                         break;
