@@ -34,11 +34,13 @@ public class ModificarImagenes {
     public Bitmap escalarImagen(Bitmap bitmap, float escala) {
         int wantedWidth = (int)(bitmap.getWidth() * escala);
         int wantedHeight = (int)(bitmap.getHeight() * escala);
+        /*
         Log.d(xxx, "escalarImagen, factor de zoom en Matrizdatos.txt: " +escala );
         Log.d(xxx, "escalarImagen, ancho original: " +bitmap.getWidth() );
         Log.d(xxx, "escalarImagen, altura original: " +bitmap.getHeight());
         Log.d(xxx, "escalarImagen, nuevo ancho: " +wantedWidth );
         Log.d(xxx, "escalarImagen, nueva altura: " +wantedHeight);
+        */
 
         Bitmap output = Bitmap.createBitmap(wantedWidth, wantedHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(output);
